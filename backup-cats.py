@@ -15,25 +15,46 @@ safe_text = quote(text)
 url = f"https://cataas.com/cat?text={safe_text}"
 
 response = requests.get(url)
-
 if response.status_code != 200:
     print("Не удалось получить картинку.")
     exit()
  
-
-
 cat_image_bytes = response.content
+
 print("Картинка успешно получена!")
 
 print("Создаем папку на Яндекс.Диске")
 url = "https://cloud-api.yandex.net/v1/disk/resources"
 headers = {"Authorization": f"OAuth {token}"}
-params = {"path": f"disk:/{GROUP_NAME}"}
+folder_path = f"disk:/{GROUP_NAME}"
 
-response = requests.put(url, headers=headers, params=params)
-
+response = requests.put(url, headers=headers, params={"path": folder_path})
 if response.status_code in [201, 409]:
     print("Папка готова.")
 else:
     print("Ошибка создания папки.")
+    exit()
+
+file_name = text.replace(" ", "_") + ".jpg"
+path_to_file = f"disk:/{GROUP_NAME}/{file_name}"
+
+print("Загружаем файл в облако")
+
+url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
+params = {"path": path_to_file}
+
+response = requests.get(url, headers=headers, params=params)
+if response.status_code != 200:
+    print("Не удалось получить ссылку для загрузки.")
+    exit()
+ 
+
+
+upload_href = response.json()["href"]
+
+response = requests.put(upload_href, data=cat_image_bytes)
+if response.status_code == 201:
+    print("Файл успешно загружен на Яндекс.Диск!")
+else:
+    print("Ошибка при загрузке файла.")
     exit()
