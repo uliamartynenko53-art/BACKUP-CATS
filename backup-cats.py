@@ -1,5 +1,6 @@
 import requests
 from urllib.parse import quote
+import json
 
 GROUP_NAME = "pyapi-160"
 text = input("Введите текст, который будет на картинке с котом: ")
@@ -58,3 +59,17 @@ if response.status_code == 201:
 else:
     print("Ошибка при загрузке файла.")
     exit()
+
+print("Сохраняем отчет в JSON")
+
+report = {
+    "text_on_image": text,
+    "file_size_bytes": len(cat_image_bytes),
+    "yandex_path": path_to_file,
+    "status": "success"
+}
+
+with open("backup_report.json", "w", encoding="utf-8") as file:
+        json.dump(report, file, indent=4, ensure_ascii=False)
+
+print("=== Программа успешно завершена! ===")
